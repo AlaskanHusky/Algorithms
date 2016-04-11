@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace Dynamic_Programming
@@ -59,34 +59,21 @@ namespace Dynamic_Programming
             }
             Console.WriteLine();
         }
-        static void DeleteNeededElements(List<int> temp, List<int> main)
-        {
-            for (int i = 0; i < temp.Count; i++)
-            {
-                for (int j = 0; j < main.Count; j++)
-                {
-                    if (temp[i] == main[j])
-                    {
-                        temp.Remove(temp[i]);
-                    }
-                }
-            }
-        }
-        static void DeleteDuplicateElements(List<int> temp)
-        {
-            int i = 0;
-            while (i != temp.Count)
-            {
-                for (int j = i + 1; j < temp.Count; j++)
-                {
-                    if (temp[i] == temp[j])
-                    {
-                        temp.Remove(temp[j]);
-                    }
-                }
-                i++;
-            }
-        }
+        //static void DeleteDuplicateElements(List<int> temp)
+        //{
+        //    int i = 0;
+        //    while (i != temp.Count)
+        //    {
+        //        for (int j = i + 1; j < temp.Count; j++)
+        //        {
+        //            if (temp[i] == temp[j])
+        //            {
+        //                temp.Remove(temp[j]);
+        //            }
+        //        }
+        //        i++;
+        //    }
+        //}
         static void RainyDay(List<int> temp, List<int> subsequence, List<int> tail, int head)
         {
             bool isEnd = true;
@@ -96,62 +83,74 @@ namespace Dynamic_Programming
                 {
                     subsequence.Add(temp[i]);
                     head = temp[i];
+                    temp.Remove(temp[i]);
                     isEnd = false;
                 }
             }
-            DeleteNeededElements(temp, subsequence);
+            if (subsequence.Count > 0)
+            {
+                head = subsequence[subsequence.Count - 1];
+            }
             for (int i = 0; i < temp.Count; i++)
             {
                 tail.Add(temp[i]);
             }
             tail.Sort();
             tail.Reverse();
-            DeleteDuplicateElements(tail);
-            head = subsequence[subsequence.Count - 1];
+            temp.Clear();
             if (isEnd)
             {
                 return;
             }
             RainyDay(tail, subsequence, temp, head);
         }
+        static void MidNight(List<int> temp, List<int> subsequence, int moon)
+        {
+            for (int i = 0; i < temp.Count; i++)
+            {
+                if (temp[i] % moon == 0)
+                {
+                    subsequence.Add(temp[i]);
+                    moon = temp[i];
+                }
+            }
+            subsequence.Sort();
+            temp.Clear();
+        }
         static void SunDay(List<int> temp, List<int> subsequence, List<int> tail, int head)
         {
-            bool isEnd = true;
-            for (int i = 0; i < temp.Count; i++)
+            for (int i = temp.Count - 1; i >= 0; i--)
             {
                 if (head % temp[i] == 0)
                 {
                     subsequence.Add(temp[i]);
                     head = temp[i];
-                    isEnd = false;
+                    temp.Remove(temp[i]);
                 }
             }
-            DeleteNeededElements(temp, subsequence);
             for (int i = 0; i < temp.Count; i++)
             {
                 tail.Add(temp[i]);
             }
             tail.Sort();
-            tail.Reverse();
-            DeleteDuplicateElements(tail);
-            head = subsequence[subsequence.Count - 1];
-            if (isEnd)
+            temp.Clear();
+            if (subsequence.Count > 0)
             {
-                return;
+                MidNight(tail,subsequence, subsequence[0]);
             }
-            RainyDay(tail, subsequence, temp, head);
         }
-        static int MaxLength(int[] a)
+        static int ElementWithMaxLength(int[] a)
         {
-            int max = 0;
+            int max = 0, number = 0;
             for(int i = 0; i < a.Length; i++)
             {
                 if (a[i] > max)
                 {
                     max = a[i];
+                    number = i;
                 }
             }
-            return max;
+            return number;
         }
         static void Implementation(int[] a)
         {
@@ -168,26 +167,37 @@ namespace Dynamic_Programming
             }
             Array.Reverse(a);
             ShowArray(a);
-            //for (int i = combinations.Length / 2; i < combinations.Length; i++)
-            //{
-            //    combinations[i] = new Worm(a);
-            //}
-            //for (int i = 0; i < combinations.Length; i++)
-            //{
-            //    RainyDay(combinations[i].Temp, combinations[i].Subsequence, combinations[i].Tail, a[i]);
-            //}
-            //for (int i = 0; i < a.Length; i++)
-            //{
-            //    lengthWorms[i] = combinations[i].LengthSequence;
-            //}
-            //longWorm = MaxLength(lengthWorms);
-            //ShowArray(combinations[longWorm].Subsequence.ToArray());
+            for (int i = combinations.Length / 2; i < combinations.Length; i++)
+            {
+                combinations[i] = new Worm(a);
+            }
+            int j = combinations.Length / 2 - 1;
+            for (int i = 0; i < combinations.Length; i++)
+            {
+                if (i >= combinations.Length / 2)
+                {
+                    SunDay(combinations[i].Temp, combinations[i].Subsequence, combinations[i].Tail, a[j]);
+                    j--;
+                    continue;
+                }
+                RainyDay(combinations[i].Temp, combinations[i].Subsequence, combinations[i].Tail, a[i]);
+            }
+            for (int i = 0; i < a.Length; i++)
+            {
+                lengthWorms[i] = combinations[i].LengthSequence;
+            }
+            longWorm = ElementWithMaxLength(lengthWorms);
+            ShowArray(combinations[longWorm].Subsequence.ToArray());
         }
         static void Main(string[] args)
         {
             int n;
-            Console.Write("Input array size: ");
-            n = int.Parse(Console.ReadLine());
+            do
+            {
+                Console.Write("Input array size (>3): ");
+                n = int.Parse(Console.ReadLine());
+            }
+            while (n < 4);
             int[] arr = new int[n];
             Implementation(arr);
         }
